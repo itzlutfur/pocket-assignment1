@@ -23,7 +23,7 @@ const postSchema = Joi.object({
     author: Joi.string().required()
 });
 
-// get api to fetch blog posr by id
+// get api to fetch blog post by id
 app.get('/posts/:id', (req, res) => {
     const postId = parseInt(req.params.id);
 
