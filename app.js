@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const Joi = require('joi');
 
 app.use(express.json());
 let posts = []; // saving the posts in memory for simplicity
@@ -16,13 +17,15 @@ class Post{
     }
 }
 
+const postSchema = Joi.object({
+    title: Joi.string().min(3).required(),
+    content: Joi.string().min(10).required(),
+    author: Joi.string().required()
+});
+
 // get api to fetch blog posr by id
 app.get('/posts/:id', (req, res) => {
     const postId = parseInt(req.params.id);
-    
-    if(posts.length === 0){
-        return res.status(404).json({ error: "No blog posts available" });
-    }
 
     if(typeof postId !== 'number' || isNaN(postId)){
         return res.status(400).json({ error: "Invalid post ID" });
@@ -38,11 +41,16 @@ app.get('/posts/:id', (req, res) => {
 // post api to create a new blog post
 app.post('/posts', (req, res) => {
     const date = new Date();
+    const { error, value } = postSchema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ errors: error.details.map(d => d.message) });
+    }
+    
     const post = new Post({
         id: posts.length + 1,
-        title: req.body.title,
-        content: req.body.content,
-        author: req.body.author,
+        title: value.title,
+        content: value.content,
+        author: value.author,
         createdAt: date
     });
     posts.push(post);
